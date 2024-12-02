@@ -12,11 +12,9 @@ class AuthController extends Controller
 {
     public function index()
     {
-        if (session('user_id')) {
-            return view('welcome');// change the welcome
-        }
-        else
-        {
+        if (session('logged_in')) {
+            return view('index'); // change the welcome
+        } else {
             return view('login');
         }
     }
@@ -24,21 +22,21 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email'=> 'required|email', 
+            'email' => 'required|email',
             'password' => 'required|min:8'
         ]);
 
         $user = User::where('email', $request->email)->first();
 
         if ($user && Hash::check($request->password, $user->password)) {
-            session(['user_id' => $user->id, 'user_name' => $user->name]);
-            return redirect()->route('post_blog')->with('success', 'Welcome,' . $user->name);
+            session(['logged_in' => true, 'user_id' => $user->id, 'user_name' => $user->name]);
+            return redirect()->route('blog.index')->with('success', 'Welcome,' . $user->name);
         }
         return back()->withErrors(['email' => 'Invalid Credentials']);
     }
     public function logout()
     {
         session()->flush();
-        return redirect()->route('login');
+        return redirect()->route('index');
     }
 }

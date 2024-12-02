@@ -7,35 +7,47 @@ use App\Models\BlogPost;
 
 class BlogPostController extends Controller
 {
+
+    public function index()
+    {
+        if (session('logged_in')) {
+            $posts = BlogPost::all();
+            return view('blog.index', compact('posts'));
+        } else {
+            return view('login');
+        }
+    }
     public function create()
     {
-        return view('create_blog');
+        if (session('logged_in')) {
+            return view('create');
+        } else {
+            return view('login');
+        }
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            "title" => "required|min:10",
-            "content" => "required|min:100",
-        ], [
-            "title.required" => "title is required",
-            "title.min" => "minimum title is 10 characters",
-            "content.required" => "content is required",
-            "content.min" => "minimum content is 100 characters"
-        ]);
+        if (session('logged_in')) {
+            $request->validate([
+                "title" => "required|min:10",
+                "content" => "required|min:100",
+            ], [
+                "title.required" => "title is required",
+                "title.min" => "minimum title is 10 characters",
+                "content.required" => "content is required",
+                "content.min" => "minimum content is 100 characters"
+            ]);
 
-        BlogPost::create([
-            "title" => $request->title,
-            "content" => $request->content,
-            "user_id" => session('user_id'),
-        ]);
+            BlogPost::create([
+                "title" => $request->title,
+                "content" => $request->content,
+                "user_id" => session('user_id'),
+            ]);
 
-        return redirect()->route('post_blog')->with('success', "Post successfully created");
-    }
-
-    public function show($id)
-    {
-        $post = BlogPost::find($id);
-        return view('show_blog', compact('post'));
+            return redirect()->route('blog.index')->with('success', "Post successfully created");
+        } else {
+            return view('login');
+        }
     }
 }
